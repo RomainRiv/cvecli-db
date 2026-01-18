@@ -36,7 +36,7 @@ jobs:
       RELEASE_TYPE: ${{ github.event_name == 'workflow_dispatch' && inputs.release_type || 'official' }}
 
     steps:
-      - name: Checkout cvec-db
+      - name: Checkout cvecli-db
         uses: actions/checkout@v4
 
       - name: Install uv
@@ -46,15 +46,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv tool install "cvec[semantic] @ git+https://github.com/${{ github.repository_owner }}/cvec.git@0df6e1a9bde4e0162d38a0c53dcac8bfb2d4fe14"
+          uv tool install "cvecli[semantic] @ git+https://github.com/${{ github.repository_owner }}/cvecli.git@0df6e1a9bde4e0162d38a0c53dcac8bfb2d4fe14"
 
       - name: Build database
         run: |
           echo "YEARS=${YEARS}"
-          cvec db build download-json --years "${YEARS}" -d data/
-          cvec db build extract-parquet --years "${YEARS}" -d data/
-          cvec db build extract-embeddings -d data/ -v --years 10
-          cvec db build create-manifest -d data/ -s "TMP CI" --release-status "${RELEASE_TYPE}"
+          cvecli db build download-json --years "${YEARS}" -d data/
+          cvecli db build extract-parquet --years "${YEARS}" -d data/
+          cvecli db build extract-embeddings -d data/ -v --years 10
+          cvecli db build create-manifest -d data/ -s "TMP CI" --release-status "${RELEASE_TYPE}"
 
       - name: List generated files
         run: |
@@ -117,9 +117,9 @@ jobs:
             - `manifest.json` - Metadata and checksums
 
             ## Usage
-            Download with cvec tool:
+            Download with cvecli tool:
             ```bash
-            cvec db update
+            cvecli db update
             ```
           files: |
             data/*.parquet
