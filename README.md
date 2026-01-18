@@ -1,6 +1,6 @@
-# cvec-db
+# cvecli-db
 
-CVE Database Builder - generates parquet files for the [cvec](https://github.com/your-org/cvec) tool.
+CVE Database Builder - generates parquet files for the [cvecli](https://github.com/your-org/cvecli) tool.
 
 ## Overview
 
@@ -9,14 +9,14 @@ This repository provides the infrastructure for building and distributing pre-bu
 ## How it Works
 
 1. **Daily builds**: A GitHub Action runs daily to download the latest CVE data from the [cvelistV5](https://github.com/CVEProject/cvelistV5) repository
-2. **Extraction**: The data is extracted into normalized parquet files using the `cvec` library
+2. **Extraction**: The data is extracted into normalized parquet files using the `cvecli` library
 3. **Embeddings**: Semantic embeddings are generated using sentence-transformers (all-MiniLM-L6-v2 model) for semantic search (this currently takes over an hour, this needs to be optimized someday)
 4. **Manifest**: A manifest file is generated with checksums for integrity verification
 5. **Release**: The parquet files are published as a GitHub Release
 
 ## Schema Versioning
 
-The parquet files include a `manifest.json` with a `schema_version` field. The cvec tool checks this version before downloading to ensure compatibility. When the parquet schema changes in a breaking way, this version is incremented.
+The parquet files include a `manifest.json` with a `schema_version` field. The cvecli tool checks this version before downloading to ensure compatibility. When the parquet schema changes in a breaking way, this version is incremented.
 
 ## Files Produced
 
@@ -42,7 +42,7 @@ The parquet files include a `manifest.json` with a `schema_version` field. The c
 
 🚧 TODO 🚧
 
-## Usage with cvec
+## Usage with cvecli
 
 🚧 TODO 🚧
 
