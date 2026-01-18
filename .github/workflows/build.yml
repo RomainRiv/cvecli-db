@@ -46,7 +46,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv tool install "cvecli[semantic] @ git+https://github.com/${{ github.repository_owner }}/cvecli.git@0df6e1a9bde4e0162d38a0c53dcac8bfb2d4fe14"
+          uv tool install "cvecli[semantic] @ git+https://github.com/${{ github.repository_owner }}/cvecli.git@9cdf31aac889967055603b33340fffff14604629"
 
       - name: Build database
         run: |
