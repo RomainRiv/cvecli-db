@@ -87,7 +87,7 @@ jobs:
 
       - name: Delete existing release with same tag (if any)
         run: |
-          gh release delete "${{ steps.release.outputs.tag }}" --yes --cleanup-tag || true
+          gh release delete "${{ steps.release.outputs.tag }}" --yes || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
