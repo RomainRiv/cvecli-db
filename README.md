@@ -46,6 +46,12 @@ The parquet files include a `manifest.json` with a `schema_version` field. The c
 
 🚧 TODO 🚧
 
-## License
+## Licensing
 
-MIT
+### Code
+The build scripts and tooling in this repository are licensed under the MIT License (see `LICENSE`).
+
+### Data (CVE content)
+The parquet files published in GitHub Releases are derived from CVE Records sourced from `CVEProject/cvelistV5`.
+Use and redistribution of CVE content is governed by the CVE Program Terms of Use (see `CVE_TERMS_OF_USE.md`),
+which is included with each published dataset.
