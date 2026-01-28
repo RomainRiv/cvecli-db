@@ -124,6 +124,8 @@ jobs:
           files: |
             data/*.parquet
             data/manifest.json
+            NOTICE.txt
+            CVE_TERMS_OF_USE.md
           draft: ${{ steps.release.outputs.draft }}
           prerelease: ${{ steps.release.outputs.prerelease }}
           make_latest: ${{ steps.release.outputs.make_latest }}
