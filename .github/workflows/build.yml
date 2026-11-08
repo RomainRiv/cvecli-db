@@ -44,17 +44,16 @@ jobs:
         with:
           version: "latest"
 
-      - name: Install dependencies
-        run: |
-          uv tool install "cvecli[semantic] @ git+https://github.com/${{ github.repository_owner }}/cvecli.git@2b48e9ee6ca8cd6155c2500862d40e41a4ceabaa"
+      - name: Install builder
+        run: uv sync --locked --python "$PYTHON_VERSION"
 
       - name: Build database
         run: |
           echo "YEARS=${YEARS}"
-          cvecli db build download-json --years "${YEARS}" -d data/
-          cvecli db build extract-parquet --years "${YEARS}" -d data/
-          cvecli db build extract-embeddings -d data/ -v --years 10
-          cvecli db build create-manifest -d data/ -s "TMP CI" --release-status "${RELEASE_TYPE}"
+          uv run --locked cvecli-build download-json --years "${YEARS}" -d data/
+          uv run --locked cvecli-build extract-parquet --years "${YEARS}" -d data/
+          uv run --locked cvecli-build enrich-nvd --years "${YEARS}" -d data/
+          uv run --locked cvecli-build create-manifest -d data/ -s "github-actions:${GITHUB_SHA}" --release-status "${RELEASE_TYPE}"
 
       - name: List generated files
         run: |
@@ -113,19 +112,21 @@ jobs:
             - `cve_references.parquet` - References
             - `cve_credits.parquet` - Credits
             - `cve_tags.parquet` - Tags
-            - `cve_embeddings.parquet` - Embeddings for semantic search
-            - `manifest.json` - Metadata and checksums
+            - `cve_cpe_configurations.parquet` - NVD applicability configurations
+            - `cpe_matches.parquet` - NVD expanded dictionary matches
+            - `manifest.json` - Metadata, checksums and source coverage
 
             ## Usage
             Download with cvecli tool:
             ```bash
-            cvecli db update
+            cvecli update
             ```
+          fail_on_unmatched_files: true
           files: |
             data/*.parquet
             data/manifest.json
-            NOTICE.txt
-            CVE_TERMS_OF_USE.md
+            data/NOTICE.txt
+            data/CVE_TERMS_OF_USE.md
           draft: ${{ steps.release.outputs.draft }}
           prerelease: ${{ steps.release.outputs.prerelease }}
           make_latest: ${{ steps.release.outputs.make_latest }}

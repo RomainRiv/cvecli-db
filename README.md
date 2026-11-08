@@ -1,57 +1,65 @@
 # cvecli-db
 
-CVE Database Builder - generates parquet files for the [cvecli](https://github.com/your-org/cvecli) tool.
+Builds and publishes prebuilt CVE databases for [cvecli](https://github.com/RomainRiv/cvecli).
+Database production lives in the installable cvecli package; this repository owns
+its schedule and GitHub release workflow.
 
-## Overview
+## Build and release
 
-This repository provides the infrastructure for building and distributing pre-built CVE parquet databases. Instead of each user downloading and processing the raw CVE JSON files (which is slow and disk-intensive), we build the parquet files centrally and distribute them via GitHub Releases.
+The daily workflow installs the locked `cvecli[build]==0.2.1` release from PyPI,
+then runs:
 
-## How it Works
+```bash
+uv run --locked cvecli-build download-json --years 50 --data-dir data
+uv run --locked cvecli-build extract-parquet --years 50 --data-dir data
+uv run --locked cvecli-build enrich-nvd --years 50 --data-dir data
+uv run --locked cvecli-build create-manifest --data-dir data --source github-actions --release-status official
+```
 
-1. **Daily builds**: A GitHub Action runs daily to download the latest CVE data from the [cvelistV5](https://github.com/CVEProject/cvelistV5) repository
-2. **Extraction**: The data is extracted into normalized parquet files using the `cvecli` library
-3. **Embeddings**: Semantic embeddings are generated using sentence-transformers (all-MiniLM-L6-v2 model) for semantic search (this currently takes over an hour, this needs to be optimized someday)
-4. **Manifest**: A manifest file is generated with checksums for integrity verification
-5. **Release**: The parquet files are published as a GitHub Release
+Extraction preserves the nine normalized tables: CVEs, descriptions, metrics,
+products, versions, CWEs, references, credits, and tags. The manifest contains the
+schema version, checksums, sizes, statistics, and extraction coverage. License and
+notice files are copied into the output directory and included in its checksums.
+NVD enrichment adds `cve_cpe_configurations.parquet` and `cpe_matches.parquet`
+for offline CPE lookup. It streams yearly NVD CVE feeds and the CPE Match archive
+(roughly 1 GB for the latter), preserving NVD dictionary expansions and Boolean
+configuration context. Their checksums and import coverage are added to the manifest.
+There is no embedding generation or embedding release asset.
 
-## Schema Versioning
+The workflow uploads the Parquet files, manifest, and the exact notice/license
+files recorded in that manifest. The schema version remains compatible with cvecli.
+Users install the data with `cvecli update`.
 
-The parquet files include a `manifest.json` with a `schema_version` field. The cvecli tool checks this version before downloading to ensure compatibility. When the parquet schema changes in a breaking way, this version is incremented.
+## Builder version
 
-## Files Produced
+Local development and GitHub Actions use the same published cvecli 0.2.1 package
+and dependency lockfile. No cvecli source checkout or `CVECLI_REF` variable is
+required. A standalone clone can run:
 
-| File | Description |
-|------|-------------|
-| `cves.parquet` | Core CVE metadata (1:1 with CVE) |
-| `cve_descriptions.parquet` | All descriptions with language info |
-| `cve_metrics.parquet` | CVSS metrics with full component breakdown |
-| `cve_products.parquet` | Affected products |
-| `cve_versions.parquet` | Version ranges per product |
-| `cve_cwes.parquet` | CWE/problem types |
-| `cve_references.parquet` | References with tags |
-| `cve_credits.parquet` | Credits/acknowledgments |
-| `cve_tags.parquet` | CVE-level tags |
-| `cve_embeddings.parquet` | Embeddings for semantic search (384-dimensional vectors) |
-| `manifest.json` | Metadata, statistics, and checksums |
+```bash
+uv sync --locked
+uv run --locked cvecli-build --help
+```
 
-## Local Development
+To upgrade the builder, change the exact version in `pyproject.toml`, then run
+`uv lock --upgrade-package cvecli` and verify the build before committing both files.
 
-🚧 TODO 🚧
+To test an arbitrary local cvecli checkout without changing this repository's
+dependency configuration:
 
-## Manual Release Trigger
+```bash
+uv run --no-project --with '/path/to/cvecli[build]' cvecli-build --help
+```
 
-🚧 TODO 🚧
+## Manual releases
 
-## Usage with cvecli
-
-🚧 TODO 🚧
+Run **Build CVE Database** through GitHub Actions with the desired year count and
+release type: `official`, `prerelease`, or `draft`. Scheduled runs use 50 years and
+an official release. Tags use the UTC date, with `-pre` or `-draft` suffixes where
+applicable. No credentials are needed for local database production; publishing
+uses the workflow's GitHub token.
 
 ## Licensing
 
-### Code
-The build scripts and tooling in this repository are licensed under the MIT License (see `LICENSE`).
-
-### Data (CVE content)
-The parquet files published in GitHub Releases are derived from CVE Records sourced from `CVEProject/cvelistV5`.
-Use and redistribution of CVE content is governed by the CVE Program Terms of Use (see `CVE_TERMS_OF_USE.md`),
-which is included with each published dataset.
+Code is MIT licensed. Database content comes from `CVEProject/cvelistV5` and is
+subject to the CVE Program Terms of Use included with every dataset.
